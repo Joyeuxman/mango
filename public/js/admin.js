@@ -17,4 +17,30 @@ $(function () {
         }
       })
   })
+
+  // 豆瓣同步处理
+  $('#douban').blur(function(){
+    const douban = $(this);
+    const id = douban.val();
+
+    if(id){
+      $.ajax({
+        url: 'https://api.douban.com/v2/movie/subject/' + id,
+        cache: true,
+        type: 'get',
+        dataType: 'jsonp',
+        crossDomain: true,
+        jsonp: 'callback',
+        success: function(data) {
+          console.log('请求成功data===',data)
+          $('#inputTitle').val(data.title)
+          $('#inputDoctor').val(data.directors[0].name)
+          $('#inputCountry').val(data.countries[0])
+          $('#inputPoster').val(data.images.large)
+          $('#inputYear').val(data.year)
+          $('#inputSummary').val(data.summary)
+        }
+      })
+    }
+  })
 })

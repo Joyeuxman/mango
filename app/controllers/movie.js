@@ -1,6 +1,8 @@
 const _ = require('underscore');
 const Movie = require('../models/movie');//mongoose编译后的模型movie
 const Comment = require('../models/comment');//mongoose编译后的模型movie
+const Category = require('../models/category');//mongoose编译后的模型movie
+
 
 // 电影详情页
 exports.detail = (req, res) => {
@@ -30,19 +32,15 @@ exports.detail = (req, res) => {
 
 // 电影后台录入页
 exports.new = (req, res) => {
-  res.render('admin', {
-    title: '芒果电影 电影录入页',
-    movie: {
-      title: '',
-      doctor: '',
-      country: '',
-      year: '',
-      poster: '',
-      flash: '',
-      summary: '',
-      language: ''
-    }
+
+  Category.find({}, (err, categories) => {
+    res.render('admin', {
+      title: '芒果电影 电影录入页',
+      categories: categories,
+      movie: {}
+    })
   })
+
 }
 
 // 电影后台更新页
@@ -50,9 +48,12 @@ exports.update = (req, res) => {
   const id = req.params.id;
   if (id) {
     Movie.findById(id, (err, movie) => {
-      res.render('admin', {
-        title: '芒果电影 更新页',
-        movie: movie
+      Category.find({}, (err, categories) => {
+        res.render('admin', {
+          title: '芒果电影 更新页',
+          movie: movie,
+          categories: categories
+        })
       })
     })
   }
@@ -60,15 +61,19 @@ exports.update = (req, res) => {
 
 // 将电影保存到mongoDB数据库
 exports.save = function (req, res) {
+  console.log('111哈哈哈哈哈哈开始保存=======================================',req.body)
   const id = req.body.movie._id;
   const movieObj = req.body.movie;
+  console.log('111哈哈哈哈哈哈movieObj=======================================', movieObj)
+
   let _movie = null;
-  if (id !== 'undefined') { // 已经存在的电影数据
+  if (id) { // 已经存在的电影数据
+    console.log('222哈哈哈哈哈哈=======================================')
     Movie.findById(id, function (err, movie) {
       if (err) {
         console.log(err);
       }
-      _movie = _underscore.extend(movie, movieObj); // 用新对象里的字段替换老的字段
+      _movie = _.extend(movie, movieObj); // 用新对象里的字段替换老的字段
       _movie.save(function (err, movie) {
         if (err) {
           console.log(err);
@@ -77,21 +82,25 @@ exports.save = function (req, res) {
       });
     });
   } else {  // 新加的电影
-    _movie = new Movie({
-      doctor: movieObj.doctor,
-      title: movieObj.title,
-      country: movieObj.country,
-      language: movieObj.language,
-      year: movieObj.year,
-      poster: movieObj.poster,
-      summary: movieObj.summary,
-      flash: movieObj.flash
-    });
+    _movie = new Movie(movieObj);
+    const categoryId = _movie.category;
+    console.log('要保存的电影movieObj====', _movie)
     _movie.save(function (err, movie) {
       if (err) {
         console.log(err);
       }
-      res.redirect('/movie/' + movie._id);
+      console.log('保存后电影movie====', movie)
+      console.log('哈哈哈哈哈哈=======================================')
+      Category.findById(categoryId, (err, category) => {
+        console.log('category.movies==========',category.movies)
+        category.movies.push(movie._id);
+        category.save((err, category) => {
+          if (err) {
+            console.log(err);
+          }
+          res.redirect('/movie/' + movie._id);
+        })
+      })
     });
   }
 };
