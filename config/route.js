@@ -70,6 +70,11 @@ module.exports = function (app) {
   app.get('/admin/category/list', User.signinRequired, User.adminRequired, Category.list)
   // ******************* 评论  end ***********************
 
+  
+
+  // ******************* 查询  start ***********************
+  app.get('/results', Index.search)
+  // ******************* 查询  end ***********************
 }
 
 

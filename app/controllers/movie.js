@@ -61,7 +61,7 @@ exports.update = (req, res) => {
 
 // 将电影保存到mongoDB数据库
 exports.save = function (req, res) {
-  console.log('111哈哈哈哈哈哈开始保存=======================================',req.body)
+  console.log('111哈哈哈哈哈哈开始保存=======================================', req.body)
   const id = req.body.movie._id;
   const movieObj = req.body.movie;
   console.log('111哈哈哈哈哈哈movieObj=======================================', movieObj)
@@ -83,24 +83,46 @@ exports.save = function (req, res) {
     });
   } else {  // 新加的电影
     _movie = new Movie(movieObj);
-    const categoryId = _movie.category;
-    console.log('要保存的电影movieObj====', _movie)
+    const categoryId = movieObj.category;
+    const categoryName = movieObj.categoryName;
+    
+    // const { categoryId, categoryName } = movieObj;
+    // console.log('要保存的电影movieObj====', _movie)
+    // console.log('要保存的电影categoryId, categoryName====', _movie)
+    
     _movie.save(function (err, movie) {
       if (err) {
         console.log(err);
       }
-      console.log('保存后电影movie====', movie)
+      // console.log('保存后电影movie====', movie)
       console.log('哈哈哈哈哈哈=======================================')
-      Category.findById(categoryId, (err, category) => {
-        console.log('category.movies==========',category.movies)
-        category.movies.push(movie._id);
-        category.save((err, category) => {
-          if (err) {
-            console.log(err);
-          }
-          res.redirect('/movie/' + movie._id);
+      if (categoryId) {
+        Category.findById(categoryId, (err, category) => {
+          // console.log('category.movies==========', category.movies)
+          // // ???此处有bug  后台录入电影时，如果没有选择电影分类的话，点击录入会报错
+          category.movies.push(movie._id);
+          category.save((err, category) => {
+            if (err) {
+              console.log(err);
+            }
+            res.redirect('/movie/' + movie._id);
+          })
         })
-      })
+      }
+      else if (categoryName) {
+        const category = new Category({
+          name: categoryName,
+          movies: [movie._id]
+        })
+
+        category.save((err, category) => {
+          movie.category = category._id
+          movie.save((err, movie) => {
+            res.redirect('/movie/' + movie._id)
+          })
+        })
+      }
+
     });
   }
 };
