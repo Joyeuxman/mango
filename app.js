@@ -1,20 +1,20 @@
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
-
 const logger = require('morgan');//日志打印
-const session = require('express-session');//会话
-const mongoStore = require('connect-mongo')(session);
+const session = require('express-session');//会话---用来保存用户信息
+const mongoStore = require('connect-mongo')(session);//将session保存到MongoDB中
+
 const cookieParser = require('cookie-parser');
 const serveStatic = require('serve-static');//静态文件处理
 //因为后台录入页有提交表单的步骤，故加载此模块用来文件解析，将表单里的数据进行格式化
 const bodyParser = require('body-parser');
 
-const dbUrl = 'mongodb://localhost:27017/mango';
+const dbUrl = 'mongodb://localhost:27017/mango';//mongoDB数据库的连接地址
 const port = process.env.PORT || 3008;//设置端口号——3008
 
 const app = express();
-// app.locals的各属性值将贯穿程序app的整个生命周期
+// app.locals的各属性值将贯穿程序app的整个生命周期，相当于声明了一个全局变量
 app.locals.moment = require('moment');
 
 //监听 port[3008]端口 
@@ -38,8 +38,8 @@ mongoose还有Query和Aggregate对象，Query实现查询，Aggregate实现聚�
 
 
 app.use(serveStatic('public'));//静态文件路径——public
-app.use(bodyParser.urlencoded({ extend: true }));
-app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extend: true }));//将表单数据提取到req.body中
+app.use(cookieParser());//将cookie数据提取到
 // 将在mongoDB数据库中创建session集合
 app.use(session({
   // name: 设置 cookie 中保存 session id 的字段名称，默认为connect.sid
